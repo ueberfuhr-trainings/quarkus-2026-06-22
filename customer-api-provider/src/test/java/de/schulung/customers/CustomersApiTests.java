@@ -18,6 +18,7 @@ public class CustomersApiTests {
   @Test
   void when_get_customers_then_return_json_array() {
     given()
+      .accept(ContentType.JSON)
       .when()
       .get("/customers")
       .then()
