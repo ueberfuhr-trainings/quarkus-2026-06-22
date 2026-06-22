@@ -13,6 +13,8 @@ on:
     paths:
       - 'customer-api-provider/**'
 
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
