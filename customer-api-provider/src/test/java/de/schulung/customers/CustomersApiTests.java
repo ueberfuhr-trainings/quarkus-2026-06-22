@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
@@ -14,7 +15,6 @@ import static org.hamcrest.Matchers.is;
 public class CustomersApiTests {
 
   // GET /customers + Accept: application/json -> 200 + JSON-Array
-
   @Test
   void when_get_customers_then_return_json_array() {
     given()
@@ -28,5 +28,44 @@ public class CustomersApiTests {
   }
 
   // GET /customers + Accept: application/xml -> 406
+  @Test
+  void when_get_customers_as_xml_then_deny() {
+    given()
+      .accept(ContentType.XML)
+      .when()
+      .get("/customers")
+      .then()
+      .statusCode(406);
+  }
+
+  // POST /customers mit JSON -> 201 + Customer als JSON mit UUID
+  @Test
+  void when_post_customer_then_return_created_and_customer_with_uuid() {
+    given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .contentType(ContentType.JSON)
+      .body("uuid", is(instanceOf(String.class)))
+      .body("name", is(equalTo("Tom Mayer")))
+      .body("birthdate", is(equalTo("2006-06-23")))
+      .body("state", is(equalTo("active")));
+  }
+
+  // POST /customers mit XML -> 415
+  // POST /customers mit Accept: application/xml -> 406
+
+  // Setup: POST /customers mit Customer als JSON -> 201
+  // Test: GET /customers -> 200 + Customer im Array
 
 }
