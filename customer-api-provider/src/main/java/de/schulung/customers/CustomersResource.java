@@ -13,39 +13,35 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Path("/customers")
 public class CustomersResource {
 
-  private final Map<UUID, Customer> customers = new ConcurrentHashMap<>();
+  private final CustomersService customersService = new CustomersService();
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Collection<Customer> getCustomers() {
-    return customers
-      .values();
+    return customersService
+      .getCustomers()
+      .toList();
   }
 
   @GET
   @Path("/{uuid}")
   @Produces(MediaType.APPLICATION_JSON)
   public Customer getCustomerByUuid(@PathParam("uuid") UUID uuid) {
-    final var result = customers.get(uuid);
-    if (result == null) {
-      throw new NotFoundException();
-    }
-    return result;
+    return customersService
+      .getCustomerByUuid(uuid)
+      .orElseThrow(NotFoundException::new);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response createCustomer(Customer customer, UriInfo uriInfo) {
-    customer.setUuid(UUID.randomUUID());
-    customers.put(customer.getUuid(), customer);
+    customersService.createCustomer(customer);
     final var location = uriInfo
       .getAbsolutePathBuilder()
       .path(customer.getUuid().toString())
@@ -59,10 +55,10 @@ public class CustomersResource {
   @DELETE
   @Path("/{uuid}")
   public void deleteCustomer(@PathParam("uuid") UUID uuid) {
-    if (!customers.containsKey(uuid)) {
+    if (!customersService.customerExists(uuid)) {
       throw new NotFoundException();
     }
-    customers.remove(uuid);
+    customersService.deleteCustomer(uuid);
   }
 
 }
