@@ -7,11 +7,13 @@ import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@RequiredArgsConstructor
 @IfBuildProperty(
   name = "application.persistence.type",
   stringValue = "panache",
@@ -24,12 +26,6 @@ public class CustomersSinkPanacheImpl
 
   private final CustomersRepository repo;
   private final CustomerEntityMapper mapper;
-
-  public CustomersSinkPanacheImpl(CustomersRepository repo, CustomerEntityMapper mapper) {
-    this.repo = repo;
-    this.mapper = mapper;
-  }
-
 
   @Override
   public Stream<Customer> findAll() {

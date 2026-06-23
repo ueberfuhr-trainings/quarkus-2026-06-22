@@ -16,20 +16,17 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Path("/customers")
 public class CustomersResource {
 
   private final CustomersService customersService;
   private final CustomerDtoMapper mapper;
-
-  public CustomersResource(CustomersService customersService, CustomerDtoMapper mapper) {
-    this.customersService = customersService;
-    this.mapper = mapper;
-  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
