@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -50,17 +51,23 @@ public class CustomersApiTests {
   }
 
   // POST /customers mit JSON -> 201 + Customer als JSON mit UUID
-  @Test
-  void when_post_customers_then_return_created_and_customer_with_uuid() {
+  @ParameterizedTest
+  @ValueSource(strings = {
+    "active",
+    "locked",
+    "disabled"
+  })
+  void when_post_customers_then_return_created_and_customer_with_uuid(String state) {
     given()
       .contentType(ContentType.JSON)
       .body("""
         {
           "name": "Tom Mayer",
           "birthdate": "2006-06-23",
-          "state": "active"
+          "state": "%s"
         }
-        """)
+        """
+        .formatted(state))
       .accept(ContentType.JSON)
       .when()
       .post("/customers")
@@ -70,7 +77,7 @@ public class CustomersApiTests {
       .body("uuid", is(instanceOf(String.class)))
       .body("name", is(equalTo("Tom Mayer")))
       .body("birthdate", is(equalTo("2006-06-23")))
-      .body("state", is(equalTo("active")));
+      .body("state", is(equalTo(state)));
   }
 
   // POST /customers mit XML -> 415
