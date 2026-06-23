@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 
@@ -40,7 +42,7 @@ public class CustomersApiTests {
 
   // POST /customers mit JSON -> 201 + Customer als JSON mit UUID
   @Test
-  void when_post_customer_then_return_created_and_customer_with_uuid() {
+  void when_post_customers_then_return_created_and_customer_with_uuid() {
     given()
       .contentType(ContentType.JSON)
       .body("""
@@ -63,9 +65,78 @@ public class CustomersApiTests {
   }
 
   // POST /customers mit XML -> 415
+  @Test
+  void when_post_customers_with_xml_then_return_unsupported_mediatype() {
+    given()
+      .contentType(ContentType.XML)
+      .body("<customer />")
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(415);
+  }
+
   // POST /customers mit Accept: application/xml -> 406
+  @Test
+  void when_post_customers_with_invalid_accept_then_return_not_acceptable() {
+    given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.XML)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(406);
+  }
 
   // Setup: POST /customers mit Customer als JSON -> 201
   // Test: GET /customers -> 200 + Customer im Array
+  @Test
+  void given_created_customer_when_get_customers_then_customer_is_in_array() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .accept(ContentType.JSON)
+      .when()
+      .get("/customers")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      // see https://github.com/rest-assured/rest-assured/wiki/usage#json-example
+      .body(
+        "find { it.uuid == '%s' }".formatted(newCustomerUuid),
+        allOf(
+          hasEntry("name", "Tom Mayer"),
+          hasEntry("birthdate", "2006-06-23"),
+          hasEntry("state", "active")
+        )
+      );
+
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Test: GET /customers/{uuid} -> 200 + Customer
+
 
 }
