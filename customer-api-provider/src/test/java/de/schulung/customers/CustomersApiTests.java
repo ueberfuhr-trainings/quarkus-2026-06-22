@@ -6,7 +6,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.allOf;
@@ -14,6 +13,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 @QuarkusTest
 public class CustomersApiTests {
@@ -235,12 +235,38 @@ public class CustomersApiTests {
 
   }
 
-  // Test: GET /customers/{uuid} für nicht-existenten Kunden -> 404
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Setup: DELETE /customers/{uuid} -> 204
+  // Test: GET /customers/{uuid} -> 404
   @Test
   void when_get_customer_by_uuid_not_existing_then_return_not_found() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .delete("/customers/{uuid}")
+      .then()
+      .statusCode(204);
+
+    // Test
     given()
       .accept(ContentType.JSON)
-      .pathParam("uuid", UUID.randomUUID().toString())
+      .pathParam("uuid", newCustomerUuid)
       .when()
       .get("/customers/{uuid}")
       .then()
@@ -249,7 +275,83 @@ public class CustomersApiTests {
 
   // Setup: POST /customers mit Customer als JSON -> 201 + UUID
   // Test: DELETE /customers/{uuid} -> 204 (=Setup für weitere Tests)
-  // Test: GET|DELETE /customers/{uuid} -> 404
-  // Test: GET /customers -> 200 ohne UUID
+  // Test: DELETE /customers/{uuid} -> 404
+  @Test
+  void given_created_customer_when_delete_customer_then_return_no_content() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .delete("/customers/{uuid}")
+      .then()
+      .statusCode(204);
+
+    // try to delete again
+    given()
+      .accept(ContentType.JSON)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .delete("/customers/{uuid}")
+      .then()
+      .statusCode(404);
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Setup: DELETE /customers/{uuid} -> 204
+  // Test: GET /customers -> 200 mit Array ohne diesen Kunden
+  @Test
+  void given_deleted_customer_when_get_customers_then_return_array_without_customer() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .delete("/customers/{uuid}")
+      .then()
+      .statusCode(204);
+
+    // Test
+    given()
+      .accept(ContentType.JSON)
+      .when()
+      .get("/customers")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      // see https://github.com/rest-assured/rest-assured/wiki/usage#json-example
+      .body(
+        "find { it.uuid == '%s' }".formatted(newCustomerUuid),
+        is(nullValue())
+      );
+  }
 
 }

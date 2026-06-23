@@ -1,6 +1,7 @@
 package de.schulung.customers;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
@@ -53,6 +54,15 @@ public class CustomersResource {
       .created(location)
       .entity(customer)
       .build();
+  }
+
+  @DELETE
+  @Path("/{uuid}")
+  public void deleteCustomer(@PathParam("uuid") UUID uuid) {
+    if (!customers.containsKey(uuid)) {
+      throw new NotFoundException();
+    }
+    customers.remove(uuid);
   }
 
 }
