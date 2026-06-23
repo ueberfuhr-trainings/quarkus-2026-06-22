@@ -2,9 +2,11 @@ package de.schulung.customers;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.allOf;
@@ -200,7 +202,54 @@ public class CustomersApiTests {
 
   // Setup: POST /customers mit Customer als JSON -> 201 + Location-Header
   // Test: GET {location} -> 200 + Customer
+  @Test
+  void given_created_customer_when_get_customer_by_location_header_then_return_customer() {
+    final var location = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .header(HttpHeaders.LOCATION, is(instanceOf(String.class)))
+      .extract().header(HttpHeaders.LOCATION);
+
+    given()
+      .accept(ContentType.JSON)
+      .baseUri(location)
+      .when()
+      .get()
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      .body("name", is(equalTo("Tom Mayer")))
+      .body("birthdate", is(equalTo("2006-06-23")))
+      .body("state", is(equalTo("active")));
+
+  }
 
   // Test: GET /customers/{uuid} für nicht-existenten Kunden -> 404
+  @Test
+  void when_get_customer_by_uuid_not_existing_then_return_not_found() {
+    given()
+      .accept(ContentType.JSON)
+      .pathParam("uuid", UUID.randomUUID().toString())
+      .when()
+      .get("/customers/{uuid}")
+      .then()
+      .statusCode(404);
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Test: DELETE /customers/{uuid} -> 204 (=Setup für weitere Tests)
+  // Test: GET|DELETE /customers/{uuid} -> 404
+  // Test: GET /customers -> 200 ohne UUID
 
 }

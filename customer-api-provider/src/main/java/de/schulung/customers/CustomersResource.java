@@ -2,12 +2,14 @@ package de.schulung.customers;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collection;
 import java.util.Map;
@@ -30,17 +32,25 @@ public class CustomersResource {
   @Path("/{uuid}")
   @Produces(MediaType.APPLICATION_JSON)
   public Customer getCustomerByUuid(@PathParam("uuid") UUID uuid) {
-    return customers.get(uuid);
+    final var result = customers.get(uuid);
+    if (result == null) {
+      throw new NotFoundException();
+    }
+    return result;
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createCustomer(Customer customer) {
+  public Response createCustomer(Customer customer, UriInfo uriInfo) {
     customer.setUuid(UUID.randomUUID());
     customers.put(customer.getUuid(), customer);
+    final var location = uriInfo
+      .getAbsolutePathBuilder()
+      .path(customer.getUuid().toString())
+      .build();
     return Response
-      .status(Response.Status.CREATED)
+      .created(location)
       .entity(customer)
       .build();
   }
