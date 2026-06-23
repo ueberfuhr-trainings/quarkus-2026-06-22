@@ -1,11 +1,14 @@
 package de.schulung.customers;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+@ApplicationScoped
 public class CustomersService {
 
   private final Map<UUID, Customer> customers = new ConcurrentHashMap<>();

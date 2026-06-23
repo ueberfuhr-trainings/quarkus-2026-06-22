@@ -18,7 +18,11 @@ import java.util.UUID;
 @Path("/customers")
 public class CustomersResource {
 
-  private final CustomersService customersService = new CustomersService();
+  private final CustomersService customersService;
+
+  public CustomersResource(CustomersService customersService) {
+    this.customersService = customersService;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
