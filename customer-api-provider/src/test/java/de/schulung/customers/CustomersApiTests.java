@@ -137,6 +137,69 @@ public class CustomersApiTests {
 
   // Setup: POST /customers mit Customer als JSON -> 201 + UUID
   // Test: GET /customers/{uuid} -> 200 + Customer
+  @Test
+  void given_created_customer_when_get_customer_by_uuid_then_customer_is_returned() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
 
+    given()
+      .accept(ContentType.JSON)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .get("/customers/{uuid}")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      .body("uuid", is(equalTo(newCustomerUuid)))
+      .body("name", is(equalTo("Tom Mayer")))
+      .body("birthdate", is(equalTo("2006-06-23")))
+      .body("state", is(equalTo("active")));
+
+  }
+
+  @Test
+  void given_created_customer_when_get_customer_by_uuid_as_xml_then_not_acceptable() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .accept(ContentType.XML)
+      .when()
+      .get("/customers/{uuid}", newCustomerUuid)
+      .then()
+      .statusCode(406);
+
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + Location-Header
+  // Test: GET {location} -> 200 + Customer
+
+  // Test: GET /customers/{uuid} für nicht-existenten Kunden -> 404
 
 }
