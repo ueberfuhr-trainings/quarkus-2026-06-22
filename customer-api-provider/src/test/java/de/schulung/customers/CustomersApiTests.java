@@ -190,8 +190,9 @@ public class CustomersApiTests {
 
     given()
       .accept(ContentType.XML)
+      .pathParam("uuid", newCustomerUuid)
       .when()
-      .get("/customers/{uuid}", newCustomerUuid)
+      .get("/customers/{uuid}")
       .then()
       .statusCode(406);
 
