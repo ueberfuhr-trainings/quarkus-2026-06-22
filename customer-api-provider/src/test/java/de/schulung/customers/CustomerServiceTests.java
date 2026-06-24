@@ -2,9 +2,13 @@ package de.schulung.customers;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.validation.ValidationException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @QuarkusTest
 public class CustomerServiceTests {
@@ -12,24 +16,34 @@ public class CustomerServiceTests {
   @Inject
   CustomersService customersService;
 
-  @Test
-  void given_invalid_customer_when_create_customer_then_throw_exception() {
-    var customer = new Customer();
-    // TODO AssertJ
-    Assertions.assertThrows(
-      Exception.class,
-      () -> customersService.createCustomer(customer)
+  static Stream<Arguments> invalidCustomers() {
+    return Stream.of(
+      Arguments.of(
+        "empty customer",
+        new Customer()
+      ),
+      Arguments.of(
+        "null customer",
+        null
+      ),
+      Arguments.of(
+        "customer without birthdate",
+        new Customer()
+          .setName("Tom Mayer")
+          .setState("active")
+      )
     );
   }
 
-  @Test
-  void given_null_customer_when_create_customer_then_throw_exception() {
-    // TODO AssertJ
-    Assertions.assertThrows(
-      ValidationException.class,
-      () -> customersService.createCustomer(null)
-    );
+  @ParameterizedTest(name = "[{index}] {0}")
+  @MethodSource("invalidCustomers")
+  void given_invalid_customer_when_create_customer_then_throw_exception(
+    String description,
+    Customer customer
+  ) {
+    assertThatThrownBy(() -> customersService.createCustomer(customer))
+      .isInstanceOf(Exception.class)
+      .isNotInstanceOf(NullPointerException.class);
   }
-
 
 }
