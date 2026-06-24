@@ -1,5 +1,6 @@
 package de.schulung.customers;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -22,6 +23,7 @@ public class Customer {
     return uuid;
   }
 
+  @JsonbTransient
   public Customer setUuid(UUID uuid) {
     this.uuid = uuid;
     return this;
