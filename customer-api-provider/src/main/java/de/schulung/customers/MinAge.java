@@ -8,6 +8,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.temporal.ChronoUnit;
 
 @Target({
   ElementType.METHOD,
@@ -22,7 +23,11 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = MinAgeValidator.class)
 public @interface MinAge {
 
-  String message() default "Must have a minimum age of 18 years.";
+  long value() default 18;
+
+  ChronoUnit unit() default ChronoUnit.YEARS;
+
+  String message() default "Must have a minimum age of {value} {unit}.";
 
   Class<?>[] groups() default {};
 

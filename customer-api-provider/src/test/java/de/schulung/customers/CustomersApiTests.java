@@ -5,9 +5,13 @@ import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.allOf;
@@ -356,7 +360,27 @@ public class CustomersApiTests {
       );
   }
 
+  static Stream<String> invalidCustomerJsons() {
+    return Stream.of(
+      // customer is too young
+      """
+        {
+          "name": "Tom Mayer",
+          "birthdate": "%s",
+          "state": "active"
+        }
+        """
+        .formatted(
+          LocalDate
+            .now()
+            .minusYears(10)
+            .format(DateTimeFormatter.ISO_DATE)
+        )
+    );
+  }
+
   @ParameterizedTest
+  @MethodSource("invalidCustomerJsons")
   @ValueSource(strings = {
     // invalid birthdate format
     """
