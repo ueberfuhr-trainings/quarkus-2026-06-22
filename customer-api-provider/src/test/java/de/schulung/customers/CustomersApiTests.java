@@ -404,6 +404,24 @@ public class CustomersApiTests {
         "state": "gelbekatze"
       }
       """,
+    // UUID included
+    """
+      {
+        "uuid": "3f8a1513-3061-4bf7-bb48-a2979a529ff5",
+        "name": "Tom Mayer",
+        "birthdate": "2001-04-23",
+        "state": "active"
+      }
+      """,
+    // unknown property
+    """
+      {
+        "name": "Tom Mayer",
+        "birthdate": "2001-04-23",
+        "state": "active",
+        "gelbekatze": "gruenerfuchs"
+      }
+      """,
 
   })
   void given_invalid_customer_when_post_customers_then_bad_request(String body) {
