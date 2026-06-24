@@ -19,6 +19,13 @@ public class CustomersService {
       .stream();
   }
 
+  public Stream<Customer> getCustomersByState(String state) {
+    return customers
+      .values()
+      .stream()
+      .filter(customer -> state.equals(customer.getState()));
+  }
+
   public Optional<Customer> getCustomerByUuid(UUID uuid) {
     return Optional.ofNullable(customers.get(uuid));
   }

@@ -1,6 +1,7 @@
 package de.schulung.customers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -9,6 +10,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
@@ -27,9 +29,15 @@ public class CustomersResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Collection<Customer> getCustomers() {
-    return customersService
-      .getCustomers()
+  public Collection<Customer> getCustomers(
+    @QueryParam("state")
+    @Pattern(regexp = "active|locked|disabled")
+    String state
+  ) {
+    return (null == state
+      ? customersService.getCustomers()
+      : customersService.getCustomersByState(state)
+    )
       .toList();
   }
 

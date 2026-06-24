@@ -435,5 +435,50 @@ public class CustomersApiTests {
       .statusCode(400);
   }
 
+  @Test
+  void given_invalid_state_parameter_when_get_customers_then_status_bad_request() {
+    given()
+      .accept(ContentType.JSON)
+      .queryParam("state", "gelbekatze")
+      .when()
+      .get("/customers")
+      .then()
+      .statusCode(400);
+  }
+
+  @Test
+  void given_created_customer_with_active_state_when_get_customers_with_locked_state_then_customer_is_not_in_array() {
+    // setup
+    var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+            {
+              "name": "Tom Mayer",
+              "birthdate": "2000-05-19",
+              "state": "active"
+            }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .contentType(ContentType.JSON)
+      .body("uuid", is(instanceOf(String.class)))
+      .extract().path("uuid");
+
+    // test
+    given()
+      .accept(ContentType.JSON)
+      .queryParam("state", "locked")
+      .when()
+      .get("/customers")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      // see https://github.com/rest-assured/rest-assured/wiki/usage#json-example
+      .body("find { it.uuid == '%s' }".formatted(newCustomerUuid), is(nullValue()));
+
+  }
 
 }
