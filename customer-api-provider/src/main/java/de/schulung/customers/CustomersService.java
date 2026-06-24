@@ -41,9 +41,7 @@ public class CustomersService {
   }
 
   public boolean customerExists(UUID uuid) {
-    return repo // TODO
-      .findByIdOptional(uuid)
-      .isPresent();
+    return repo.existsByUuid(uuid);
   }
 
   @Transactional

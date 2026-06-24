@@ -14,4 +14,8 @@ public class CustomersRepository
     return list("state", state);
   }
 
+  public boolean existsByUuid(UUID uuid) {
+    return count("uuid", uuid) > 0;
+  }
+
 }
