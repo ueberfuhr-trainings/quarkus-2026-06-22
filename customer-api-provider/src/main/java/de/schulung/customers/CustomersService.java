@@ -1,48 +1,54 @@
 package de.schulung.customers;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 @ApplicationScoped
 public class CustomersService {
 
-  private final Map<UUID, Customer> customers = new ConcurrentHashMap<>();
+  private final CustomersRepository repo;
+
+  public CustomersService(CustomersRepository repo) {
+    this.repo = repo;
+  }
 
   public Stream<Customer> getCustomers() {
-    return customers
-      .values()
+    return repo
+      .findAll()
       .stream();
   }
 
   public Stream<Customer> getCustomersByState(String state) {
-    return customers
-      .values()
-      .stream()
-      .filter(customer -> state.equals(customer.getState()));
+    return repo
+      .findAllByState(state)
+      .stream();
   }
 
   public Optional<Customer> getCustomerByUuid(UUID uuid) {
-    return Optional.ofNullable(customers.get(uuid));
+    return repo
+      .findByIdOptional(uuid);
   }
 
+  @Transactional
   public void createCustomer(@NotNull @Valid Customer customer) {
-    customer.setUuid(UUID.randomUUID());
-    customers.put(customer.getUuid(), customer);
+    repo.persist(customer);
   }
 
   public boolean customerExists(UUID uuid) {
-    return customers.containsKey(uuid);
+    return repo // TODO
+      .findByIdOptional(uuid)
+      .isPresent();
   }
 
+  @Transactional
   public void deleteCustomer(UUID uuid) {
-    customers.remove(uuid);
+    repo.deleteById(uuid);
   }
 
 
