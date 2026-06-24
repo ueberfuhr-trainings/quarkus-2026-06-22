@@ -14,6 +14,7 @@ public class Customer {
   @Size(min = 3, max = 100)
   private String name;
   @NotNull
+  @MinAge
   private LocalDate birthdate;
   @ValidCustomerState
   private String state;
