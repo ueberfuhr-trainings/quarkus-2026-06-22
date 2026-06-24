@@ -1,13 +1,21 @@
 package de.schulung.customers;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class Customer {
 
   private UUID uuid;
+  @NotNull
+  @Size(min = 3, max = 100)
   private String name;
+  @NotNull
   private LocalDate birthdate;
+  @Pattern(regexp = "active|locked|disabled")
   private String state;
 
   public UUID getUuid() {

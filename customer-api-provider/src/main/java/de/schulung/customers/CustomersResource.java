@@ -1,5 +1,6 @@
 package de.schulung.customers;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -44,7 +45,7 @@ public class CustomersResource {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createCustomer(Customer customer, UriInfo uriInfo) {
+  public Response createCustomer(@Valid Customer customer, UriInfo uriInfo) {
     customersService.createCustomer(customer);
     final var location = uriInfo
       .getAbsolutePathBuilder()

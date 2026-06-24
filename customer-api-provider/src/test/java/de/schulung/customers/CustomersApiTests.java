@@ -4,6 +4,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
@@ -353,5 +355,67 @@ public class CustomersApiTests {
         is(nullValue())
       );
   }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+    // invalid birthdate format
+    """
+      {
+        "name": "Tom Mayer",
+        "birthdate": "gelbekatze",
+        "state": "active"
+      }
+      """,
+    // missing name
+    """
+      {
+        "birthdate": "2001-04-23",
+        "state": "active"
+      }
+      """,
+    // missing birthdate
+    """
+      {
+        "name": "Tom Mayer",
+        "state": "active"
+      }
+      """,
+    // name with less than 3 characters
+    """
+      {
+        "name": "T",
+        "birthdate": "2001-04-23",
+        "state": "active"
+      }
+      """,
+    // name with more than 100 characters
+    """
+      {
+        "name": "T0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+        "birthdate": "2001-04-23",
+        "state": "active"
+      }
+      """,
+    // invalid state
+    """
+      {
+        "name": "Tom Mayer",
+        "birthdate": "2001-04-23",
+        "state": "gelbekatze"
+      }
+      """,
+
+  })
+  void given_invalid_customer_when_post_customers_then_bad_request(String body) {
+    given()
+      .contentType(ContentType.JSON)
+      .body(body)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(400);
+  }
+
 
 }
