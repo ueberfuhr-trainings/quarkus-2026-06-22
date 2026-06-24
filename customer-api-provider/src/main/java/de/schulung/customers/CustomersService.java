@@ -1,6 +1,8 @@
 package de.schulung.customers;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +32,7 @@ public class CustomersService {
     return Optional.ofNullable(customers.get(uuid));
   }
 
-  public void createCustomer(Customer customer) {
+  public void createCustomer(@NotNull @Valid Customer customer) {
     customer.setUuid(UUID.randomUUID());
     customers.put(customer.getUuid(), customer);
   }
