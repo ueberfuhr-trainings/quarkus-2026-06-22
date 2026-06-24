@@ -1,7 +1,6 @@
 package de.schulung.customers;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -31,7 +30,7 @@ public class CustomersResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Collection<Customer> getCustomers(
     @QueryParam("state")
-    @Pattern(regexp = "active|locked|disabled")
+    @ValidCustomerState
     String state
   ) {
     return (null == state

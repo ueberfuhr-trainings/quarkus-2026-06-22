@@ -2,7 +2,6 @@ package de.schulung.customers;
 
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -15,8 +14,9 @@ public class Customer {
   @Size(min = 3, max = 100)
   private String name;
   @NotNull
+  @MinAge
   private LocalDate birthdate;
-  @Pattern(regexp = "active|locked|disabled")
+  @ValidCustomerState
   private String state;
 
   public UUID getUuid() {
