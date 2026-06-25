@@ -3,7 +3,6 @@ package de.schulung.customers.persistence;
 import de.schulung.customers.domain.CustomerState;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import jakarta.ws.rs.BadRequestException;
 
 
 @Converter(autoApply = true)
@@ -25,7 +24,7 @@ public class CustomerStateConverter
       case "active" -> CustomerState.ACTIVE;
       case "locked" -> CustomerState.LOCKED;
       case "disabled" -> CustomerState.DISABLED;
-      default -> throw new BadRequestException();
+      default -> throw new IllegalArgumentException();
     };
   }
 
