@@ -1,5 +1,7 @@
-package de.schulung.customers;
+package de.schulung.customers.persistence;
 
+import de.schulung.customers.shared.validation.MinAge;
+import de.schulung.customers.shared.validation.ValidCustomerState;
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

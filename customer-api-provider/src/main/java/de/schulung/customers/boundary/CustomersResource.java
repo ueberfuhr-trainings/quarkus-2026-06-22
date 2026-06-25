@@ -1,5 +1,8 @@
-package de.schulung.customers;
+package de.schulung.customers.boundary;
 
+import de.schulung.customers.domain.CustomersService;
+import de.schulung.customers.persistence.Customer;
+import de.schulung.customers.shared.validation.ValidCustomerState;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
