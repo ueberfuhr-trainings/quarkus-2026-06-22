@@ -1,5 +1,6 @@
 package de.schulung.customers;
 
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 @QuarkusTest
+@TestTransaction
 public class CustomersApiTests {
 
   // GET /customers + Accept: application/json -> 200 + JSON-Array

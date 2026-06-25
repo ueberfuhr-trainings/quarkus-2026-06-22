@@ -1,5 +1,6 @@
 package de.schulung.customers;
 
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @QuarkusTest
+@TestTransaction
 public class CustomerServiceTests {
 
   @Inject
