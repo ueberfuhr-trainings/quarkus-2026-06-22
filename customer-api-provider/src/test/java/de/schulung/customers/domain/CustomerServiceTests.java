@@ -1,7 +1,5 @@
 package de.schulung.customers.domain;
 
-import de.schulung.customers.persistence.Customer;
-import de.schulung.customers.persistence.CustomersRepository;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -21,7 +19,7 @@ public class CustomerServiceTests {
   @Inject
   CustomersService customersService;
   @InjectMock
-  CustomersRepository repo;
+  CustomersSink sink;
 
   static Stream<Arguments> invalidCustomers() {
     return Stream.of(

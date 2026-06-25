@@ -1,4 +1,4 @@
-package de.schulung.customers.persistence;
+package de.schulung.customers.domain;
 
 import de.schulung.customers.shared.validation.MinAge;
 import de.schulung.customers.shared.validation.ValidCustomerState;
