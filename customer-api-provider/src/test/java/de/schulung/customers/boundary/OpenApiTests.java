@@ -1,4 +1,4 @@
-package de.schulung.customers;
+package de.schulung.customers.boundary;
 
 
 import io.quarkus.test.junit.QuarkusTest;

@@ -1,4 +1,4 @@
-package de.schulung.customers;
+package de.schulung.customers.shared.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

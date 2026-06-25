@@ -1,5 +1,7 @@
-package de.schulung.customers;
+package de.schulung.customers.domain;
 
+import de.schulung.customers.persistence.Customer;
+import de.schulung.customers.persistence.CustomersRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;

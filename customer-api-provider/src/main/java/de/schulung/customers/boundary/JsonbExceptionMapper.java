@@ -1,4 +1,4 @@
-package de.schulung.customers;
+package de.schulung.customers.boundary;
 
 import jakarta.json.bind.JsonbException;
 import jakarta.ws.rs.core.Response;
