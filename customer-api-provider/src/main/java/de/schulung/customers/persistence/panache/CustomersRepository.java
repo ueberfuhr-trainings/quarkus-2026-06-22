@@ -1,4 +1,4 @@
-package de.schulung.customers.persistence;
+package de.schulung.customers.persistence.panache;
 
 import de.schulung.customers.domain.CustomerState;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
