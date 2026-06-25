@@ -3,6 +3,7 @@ package de.schulung.customers.persistence.panache;
 import de.schulung.customers.domain.Customer;
 import de.schulung.customers.domain.CustomerState;
 import de.schulung.customers.domain.CustomersSink;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
 import jakarta.transaction.Transactional;
@@ -11,6 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@IfBuildProperty(
+  name = "application.persistence.type",
+  stringValue = "panache",
+  enableIfMissing = true
+)
 @ApplicationScoped
 @Typed(CustomersSink.class)
 public class CustomersSinkPanacheImpl
