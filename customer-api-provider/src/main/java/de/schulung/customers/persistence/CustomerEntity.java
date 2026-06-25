@@ -28,7 +28,6 @@ public class CustomerEntity {
   @MinAge
   @Column(name = "day_of_birth")
   private LocalDate birthdate;
-  // TODO: Mapping in DB?
   private CustomerState state;
 
   public UUID getUuid() {
