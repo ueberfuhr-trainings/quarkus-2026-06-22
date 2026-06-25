@@ -1,32 +1,16 @@
 package de.schulung.customers.persistence;
 
 import de.schulung.customers.domain.Customer;
-import jakarta.enterprise.context.ApplicationScoped;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
-@ApplicationScoped
-public class CustomerEntityMapper {
+@Mapper(componentModel = "cdi")
+public interface CustomerEntityMapper {
 
-  public CustomerEntity map(Customer source) {
-    return new CustomerEntity()
-      .setUuid(source.getUuid())
-      .setName(source.getName())
-      .setBirthdate(source.getBirthdate())
-      .setState(source.getState());
-  }
+  CustomerEntity map(Customer source);
 
-  public Customer map(CustomerEntity source) {
-    return new Customer()
-      .setUuid(source.getUuid())
-      .setName(source.getName())
-      .setBirthdate(source.getBirthdate())
-      .setState(source.getState());
-  }
+  Customer map(CustomerEntity source);
 
-  public void copy(CustomerEntity source, Customer target) {
-    target.setUuid(source.getUuid());
-    target.setName(source.getName());
-    target.setBirthdate(source.getBirthdate());
-    target.setState(source.getState());
-  }
+  void copy(CustomerEntity source, @MappingTarget Customer target);
 
 }
