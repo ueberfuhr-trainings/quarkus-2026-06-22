@@ -2,21 +2,15 @@ package de.schulung.customers.boundary;
 
 import de.schulung.customers.domain.Customer;
 import de.schulung.customers.domain.CustomerState;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.BadRequestException;
+import org.mapstruct.Mapper;
 
-@ApplicationScoped
-public class CustomerDtoMapper {
+@Mapper(componentModel = "cdi")
+public interface CustomerDtoMapper {
 
-  public Customer map(CustomerDto source) {
-    return new Customer()
-      .setUuid(source.getUuid())
-      .setName(source.getName())
-      .setBirthdate(source.getBirthdate())
-      .setState(mapState(source.getState()));
-  }
+  Customer map(CustomerDto source);
 
-  public CustomerState mapState(String state) {
+  default CustomerState mapState(String state) {
     return null == state ? null : switch (state) {
       case "active" -> CustomerState.ACTIVE;
       case "locked" -> CustomerState.LOCKED;
@@ -26,15 +20,9 @@ public class CustomerDtoMapper {
   }
 
 
-  public CustomerDto map(Customer source) {
-    return new CustomerDto()
-      .setUuid(source.getUuid())
-      .setName(source.getName())
-      .setBirthdate(source.getBirthdate())
-      .setState(mapState(source.getState()));
-  }
+  CustomerDto map(Customer source);
 
-  public String mapState(CustomerState state) {
+  default String mapState(CustomerState state) {
     return null == state ? null : switch (state) {
       case ACTIVE -> "active";
       case LOCKED -> "locked";
