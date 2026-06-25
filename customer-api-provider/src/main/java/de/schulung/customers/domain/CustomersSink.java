@@ -8,7 +8,7 @@ public interface CustomersSink {
 
   Stream<Customer> findAll();
 
-  default Stream<Customer> findByState(String state) {
+  default Stream<Customer> findByState(CustomerState state) {
     return findAll()
       .filter(customer -> state.equals(customer.getState()));
   }

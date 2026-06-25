@@ -1,4 +1,4 @@
-package de.schulung.customers.shared.validation;
+package de.schulung.customers.boundary.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

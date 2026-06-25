@@ -1,13 +1,15 @@
-package de.schulung.customers.domain;
+package de.schulung.customers.boundary;
 
+import de.schulung.customers.boundary.validation.ValidCustomerState;
 import de.schulung.customers.shared.validation.MinAge;
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class Customer {
+public class CustomerDto {
 
   private UUID uuid;
   @NotNull
@@ -16,13 +18,15 @@ public class Customer {
   @NotNull
   @MinAge
   private LocalDate birthdate;
-  private CustomerState state;
+  @ValidCustomerState
+  private String state;
 
   public UUID getUuid() {
     return uuid;
   }
 
-  public Customer setUuid(UUID uuid) {
+  @JsonbTransient
+  public CustomerDto setUuid(UUID uuid) {
     this.uuid = uuid;
     return this;
   }
@@ -31,7 +35,7 @@ public class Customer {
     return name;
   }
 
-  public Customer setName(String name) {
+  public CustomerDto setName(String name) {
     this.name = name;
     return this;
   }
@@ -40,16 +44,16 @@ public class Customer {
     return birthdate;
   }
 
-  public Customer setBirthdate(LocalDate birthdate) {
+  public CustomerDto setBirthdate(LocalDate birthdate) {
     this.birthdate = birthdate;
     return this;
   }
 
-  public CustomerState getState() {
+  public String getState() {
     return state;
   }
 
-  public Customer setState(CustomerState state) {
+  public CustomerDto setState(String state) {
     this.state = state;
     return this;
   }
