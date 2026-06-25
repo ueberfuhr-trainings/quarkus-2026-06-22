@@ -1,8 +1,7 @@
 package de.schulung.customers.boundary;
 
-import de.schulung.customers.domain.Customer;
+import de.schulung.customers.boundary.validation.ValidCustomerState;
 import de.schulung.customers.domain.CustomersService;
-import de.schulung.customers.shared.validation.ValidCustomerState;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -24,46 +23,52 @@ import java.util.UUID;
 public class CustomersResource {
 
   private final CustomersService customersService;
+  private final CustomerDtoMapper mapper;
 
-  public CustomersResource(CustomersService customersService) {
+  public CustomersResource(CustomersService customersService, CustomerDtoMapper mapper) {
     this.customersService = customersService;
+    this.mapper = mapper;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Collection<Customer> getCustomers(
+  public Collection<CustomerDto> getCustomers(
     @QueryParam("state")
     @ValidCustomerState
     String state
   ) {
     return (null == state
       ? customersService.getCustomers()
-      : customersService.getCustomersByState(state)
+      : customersService.getCustomersByState(mapper.mapState(state))
     )
+      .map(mapper::map)
       .toList();
   }
 
   @GET
   @Path("/{uuid}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Customer getCustomerByUuid(@PathParam("uuid") UUID uuid) {
+  public CustomerDto getCustomerByUuid(@PathParam("uuid") UUID uuid) {
     return customersService
       .getCustomerByUuid(uuid)
+      .map(mapper::map)
       .orElseThrow(NotFoundException::new);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createCustomer(@Valid Customer customer, UriInfo uriInfo) {
+  public Response createCustomer(@Valid CustomerDto customerDto, UriInfo uriInfo) {
+    final var customer = mapper.map(customerDto);
     customersService.createCustomer(customer);
+    final var responseDto = mapper.map(customer);
     final var location = uriInfo
       .getAbsolutePathBuilder()
-      .path(customer.getUuid().toString())
+      .path(responseDto.getUuid().toString())
       .build();
     return Response
       .created(location)
-      .entity(customer)
+      .entity(responseDto)
       .build();
   }
 

@@ -1,6 +1,7 @@
 package de.schulung.customers.persistence;
 
 import de.schulung.customers.domain.Customer;
+import de.schulung.customers.domain.CustomerState;
 import de.schulung.customers.domain.CustomersSink;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
@@ -16,35 +17,43 @@ public class CustomersSinkPanacheImpl
   implements CustomersSink {
 
   private final CustomersRepository repo;
+  private final CustomerEntityMapper mapper;
 
-  public CustomersSinkPanacheImpl(CustomersRepository repo) {
+  public CustomersSinkPanacheImpl(CustomersRepository repo, CustomerEntityMapper mapper) {
     this.repo = repo;
+    this.mapper = mapper;
   }
+
 
   @Override
   public Stream<Customer> findAll() {
     return repo
       .findAll()
-      .stream();
+      .stream()
+      .map(mapper::map);
   }
 
   @Override
-  public Stream<Customer> findByState(String state) {
+  public Stream<Customer> findByState(CustomerState state) {
     return repo
       .findAllByState(state)
-      .stream();
+      .stream()
+      .map(mapper::map);
   }
 
   @Override
   public Optional<Customer> findByUuid(UUID uuid) {
     return repo
-      .findByIdOptional(uuid);
+      .findByIdOptional(uuid)
+      .map(mapper::map);
   }
 
   @Transactional
   @Override
   public void save(Customer customer) {
-    repo.persist(customer);
+    final var entity = mapper.map(customer);
+    repo.persist(entity);
+    mapper.copy(entity, customer);
   }
 
   @Override
