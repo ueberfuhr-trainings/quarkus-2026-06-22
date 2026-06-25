@@ -31,7 +31,7 @@ public class CustomerDtoMapper {
       .setUuid(source.getUuid())
       .setName(source.getName())
       .setBirthdate(source.getBirthdate())
-      .setState(source.getState().name().toLowerCase());
+      .setState(mapState(source.getState()));
   }
 
   public String mapState(CustomerState state) {
