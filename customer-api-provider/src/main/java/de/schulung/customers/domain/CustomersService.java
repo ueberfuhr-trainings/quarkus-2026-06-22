@@ -1,9 +1,6 @@
 package de.schulung.customers.domain;
 
-import de.schulung.customers.persistence.Customer;
-import de.schulung.customers.persistence.CustomersRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,41 +11,37 @@ import java.util.stream.Stream;
 @ApplicationScoped
 public class CustomersService {
 
-  private final CustomersRepository repo;
+  private final CustomersSink sink;
 
-  public CustomersService(CustomersRepository repo) {
-    this.repo = repo;
+  public CustomersService(CustomersSink sink) {
+    this.sink = sink;
   }
 
+
   public Stream<Customer> getCustomers() {
-    return repo
-      .findAll()
-      .stream();
+    return sink.findAll();
   }
 
   public Stream<Customer> getCustomersByState(String state) {
-    return repo
-      .findAllByState(state)
-      .stream();
+    return sink.findByState(state);
   }
 
   public Optional<Customer> getCustomerByUuid(UUID uuid) {
-    return repo
-      .findByIdOptional(uuid);
+    return sink.findByUuid(uuid);
   }
 
-  @Transactional
+
   public void createCustomer(@NotNull @Valid Customer customer) {
-    repo.persist(customer);
+    // TODO Validation Groups für UUID Validierung
+    sink.save(customer);
   }
 
   public boolean customerExists(UUID uuid) {
-    return repo.existsByUuid(uuid);
+    return sink.existsByUuid(uuid);
   }
 
-  @Transactional
   public void deleteCustomer(UUID uuid) {
-    repo.deleteById(uuid);
+    sink.deleteByUuid(uuid);
   }
 
 
