@@ -58,7 +58,11 @@ public class CustomersSinkPanacheImpl
   @Override
   public void save(Customer customer) {
     final var entity = mapper.map(customer);
-    repo.persist(entity);
+    if (customer.getUuid() == null) {
+      repo.persist(entity);
+    } else {
+      repo.getEntityManager().merge(entity);
+    }
     mapper.copy(entity, customer);
   }
 

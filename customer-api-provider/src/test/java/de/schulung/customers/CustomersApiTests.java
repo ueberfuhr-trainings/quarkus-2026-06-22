@@ -7,7 +7,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -377,79 +376,76 @@ public class CustomersApiTests {
             .now()
             .minusYears(10)
             .format(DateTimeFormatter.ISO_DATE)
-        )
+        ),
+      // invalid birthdate format
+      """
+        {
+          "name": "Tom Mayer",
+          "birthdate": "gelbekatze",
+          "state": "active"
+        }
+        """,
+      // missing name
+      """
+        {
+          "birthdate": "2001-04-23",
+          "state": "active"
+        }
+        """,
+      // missing birthdate
+      """
+        {
+          "name": "Tom Mayer",
+          "state": "active"
+        }
+        """,
+      // name with less than 3 characters
+      """
+        {
+          "name": "T",
+          "birthdate": "2001-04-23",
+          "state": "active"
+        }
+        """,
+      // name with more than 100 characters
+      """
+        {
+          "name": "T0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+          "birthdate": "2001-04-23",
+          "state": "active"
+        }
+        """,
+      // invalid state
+      """
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2001-04-23",
+          "state": "gelbekatze"
+        }
+        """,
+      // UUID included
+      """
+        {
+          "uuid": "3f8a1513-3061-4bf7-bb48-a2979a529ff5",
+          "name": "Tom Mayer",
+          "birthdate": "2001-04-23",
+          "state": "active"
+        }
+        """,
+      // unknown property
+      """
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2001-04-23",
+          "state": "active",
+          "gelbekatze": "gruenerfuchs"
+        }
+        """
     );
   }
 
   @ParameterizedTest
   @MethodSource("invalidCustomerJsons")
-  @ValueSource(strings = {
-    // invalid birthdate format
-    """
-      {
-        "name": "Tom Mayer",
-        "birthdate": "gelbekatze",
-        "state": "active"
-      }
-      """,
-    // missing name
-    """
-      {
-        "birthdate": "2001-04-23",
-        "state": "active"
-      }
-      """,
-    // missing birthdate
-    """
-      {
-        "name": "Tom Mayer",
-        "state": "active"
-      }
-      """,
-    // name with less than 3 characters
-    """
-      {
-        "name": "T",
-        "birthdate": "2001-04-23",
-        "state": "active"
-      }
-      """,
-    // name with more than 100 characters
-    """
-      {
-        "name": "T0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
-        "birthdate": "2001-04-23",
-        "state": "active"
-      }
-      """,
-    // invalid state
-    """
-      {
-        "name": "Tom Mayer",
-        "birthdate": "2001-04-23",
-        "state": "gelbekatze"
-      }
-      """,
-    // UUID included
-    """
-      {
-        "uuid": "3f8a1513-3061-4bf7-bb48-a2979a529ff5",
-        "name": "Tom Mayer",
-        "birthdate": "2001-04-23",
-        "state": "active"
-      }
-      """,
-    // unknown property
-    """
-      {
-        "name": "Tom Mayer",
-        "birthdate": "2001-04-23",
-        "state": "active",
-        "gelbekatze": "gruenerfuchs"
-      }
-      """,
-
-  })
   void given_invalid_customer_when_post_customers_then_bad_request(String body) {
     given()
       .contentType(ContentType.JSON)
@@ -457,6 +453,136 @@ public class CustomersApiTests {
       .accept(ContentType.JSON)
       .when()
       .post("/customers")
+      .then()
+      .statusCode(400);
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Test: PUT /customers/{uuid} mit geaendertem Customer als JSON -> 204
+  // Test: GET /customers/{uuid} -> 200 mit ersetztem Customer
+  @Test
+  void given_created_customer_when_put_customer_then_no_content_and_customer_is_replaced() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    // Test: replace
+    given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Lisa Schmidt",
+          "birthdate": "1990-01-15",
+          "state": "locked"
+        }
+        """)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .put("/customers/{uuid}")
+      .then()
+      .statusCode(204);
+
+    // Test: customer was replaced
+    given()
+      .accept(ContentType.JSON)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .get("/customers/{uuid}")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
+      .body("uuid", is(equalTo(newCustomerUuid)))
+      .body("name", is(equalTo("Lisa Schmidt")))
+      .body("birthdate", is(equalTo("1990-01-15")))
+      .body("state", is(equalTo("locked")));
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Setup: DELETE /customers/{uuid} -> 204
+  // Test: PUT /customers/{uuid} -> 404
+  @Test
+  void given_deleted_customer_when_put_customer_then_not_found() {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    given()
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .delete("/customers/{uuid}")
+      .then()
+      .statusCode(204);
+
+    // Test
+    given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Lisa Schmidt",
+          "birthdate": "1990-01-15",
+          "state": "locked"
+        }
+        """)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .put("/customers/{uuid}")
+      .then()
+      .statusCode(404);
+  }
+
+  // Setup: POST /customers mit Customer als JSON -> 201 + UUID
+  // Test: PUT /customers/{uuid} mit ungueltigem Customer als JSON -> 400
+  @ParameterizedTest
+  @MethodSource("invalidCustomerJsons")
+  void given_invalid_customer_when_put_customer_then_bad_request(String body) {
+    final var newCustomerUuid = given()
+      .contentType(ContentType.JSON)
+      .body("""
+        {
+          "name": "Tom Mayer",
+          "birthdate": "2006-06-23",
+          "state": "active"
+        }
+        """)
+      .accept(ContentType.JSON)
+      .when()
+      .post("/customers")
+      .then()
+      .statusCode(201)
+      .extract().path("uuid");
+
+    // Test
+    given()
+      .contentType(ContentType.JSON)
+      .body(body)
+      .accept(ContentType.JSON)
+      .pathParam("uuid", newCustomerUuid)
+      .when()
+      .put("/customers/{uuid}")
       .then()
       .statusCode(400);
   }

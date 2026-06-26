@@ -2,6 +2,7 @@ package de.schulung.customers.infrastructure;
 
 import de.schulung.customers.domain.events.CustomerCreatedEvent;
 import de.schulung.customers.domain.events.CustomerDeletedEvent;
+import de.schulung.customers.domain.events.CustomerReplacedEvent;
 import io.quarkus.arc.log.LoggerName;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,6 +24,13 @@ public class CustomerEventsLogger {
     CustomerCreatedEvent event
   ) {
     log.infof("Customer created: %s", event.customer().getUuid());
+  }
+
+  public void logCustomerReplacedEvent(
+    @Observes
+    CustomerReplacedEvent event
+  ) {
+    log.infof("Customer replaced: %s", event.customer().getUuid());
   }
 
   public void logCustomerDeletedEvent(
