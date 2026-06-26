@@ -9,6 +9,10 @@
 
   <properties>
     <compiler-plugin.version>3.15.0</compiler-plugin.version>
+    <jacoco-plugin.version>0.8.13</jacoco-plugin.version>
+    <jacoco.coverage.instruction.minimum>0.80</jacoco.coverage.instruction.minimum>
+    <jacoco.coverage.branch.minimum>0.70</jacoco.coverage.branch.minimum>
+    <jacoco.coverage.line.minimum>0.80</jacoco.coverage.line.minimum>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -76,6 +80,11 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -157,6 +166,61 @@
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-plugin.version}</version>
+        <configuration>
+          <dataFile>${project.build.directory}/jacoco-quarkus.exec</dataFile>
+          <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+          <excludes>
+            <exclude>de/schulung/customers/persistence/inmemory/**</exclude>
+            <!-- MapStruct-generated mappers: @Generated has SOURCE retention, so exclude by name -->
+            <exclude>**/*MapperImpl.class</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>jacoco-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-check</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <haltOnFailure>true</haltOnFailure>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${jacoco.coverage.instruction.minimum}</minimum>
+                    </limit>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${jacoco.coverage.line.minimum}</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${jacoco.coverage.branch.minimum}</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
