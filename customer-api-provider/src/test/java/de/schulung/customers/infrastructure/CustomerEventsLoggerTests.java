@@ -1,5 +1,6 @@
 package de.schulung.customers.infrastructure;
 
+import de.schulung.customers.testing.CaptureOutput;
 import de.schulung.customers.testing.CaptureOutput.CapturedOutput;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @TestProfile(EnableCustomerEventsLoggingProfile.class)
-@de.schulung.customers.testing.CaptureOutput
+@CaptureOutput
 class CustomersEventsLoggerTests {
 
   @Test
