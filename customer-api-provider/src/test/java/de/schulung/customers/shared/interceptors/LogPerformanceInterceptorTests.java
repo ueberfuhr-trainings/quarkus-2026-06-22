@@ -50,14 +50,10 @@ class LogPerformanceInterceptorTests {
       .matches("(?si).*Method doSomethingAtWarnLevel took \\d+ms.*");
   }
 
-  @Test
-  void whenMethodLogsAtDebugLevel_thenMessageFilteredAtDefaultLevel(CapturedOutput output) {
-    bean.doSomethingAtDebugLevel();
-
-    // the default log level is INFO, so the DEBUG message of the interceptor is suppressed
-    assertThat(output.toString())
-      .doesNotContain("Method doSomethingAtDebugLevel");
-  }
+  // The log-level-dependent cases are covered in dedicated classes that pin the
+  // "log-performance" category via a QuarkusTestProfile:
+  //  - LogPerformanceInterceptorWithDebugLevelTests: DEBUG -> message appears
+  //  - LogPerformanceInterceptorWithInfoLevelTests:  INFO  -> DEBUG message filtered
 
   @Test
   void whenMethodNotAnnotated_thenNoPerformanceLog(CapturedOutput output) {
