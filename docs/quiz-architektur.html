@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architektur-Quiz: Onion Architecture</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0f172a;
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Progress bar */
+        .progress-wrapper {
+            background: #1e293b;
+            border-radius: 999px;
+            height: 8px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-label {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        /* Question cards */
+        .question-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .question-card.answered-correct {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 1px #22c55e33;
+        }
+
+        .question-card.answered-wrong {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 1px #ef444433;
+        }
+
+        .question-number {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #818cf8;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #f1f5f9;
+            margin-bottom: 18px;
+        }
+
+        /* Option buttons */
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 18px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #818cf8;
+            background: #1a2340;
+            color: #f1f5f9;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .option-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #334155;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) .option-label {
+            background: #818cf8;
+            color: #fff;
+        }
+
+        .option-btn.correct {
+            border-color: #22c55e;
+            background: #22c55e15;
+            color: #4ade80;
+        }
+
+        .option-btn.correct .option-label {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .option-btn.incorrect {
+            border-color: #ef4444;
+            background: #ef444415;
+            color: #f87171;
+        }
+
+        .option-btn.incorrect .option-label {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .option-btn.dimmed {
+            opacity: 0.4;
+        }
+
+        /* Feedback */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #22c55e15;
+            border: 1px solid #22c55e44;
+            color: #4ade80;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #ef444415;
+            border: 1px solid #ef444444;
+            color: #f87171;
+            display: block;
+        }
+
+        /* Result */
+        .result-section {
+            text-align: center;
+            margin-top: 36px;
+            padding-bottom: 40px;
+        }
+
+        .result-btn {
+            padding: 14px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            color: #fff;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .result-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .result-box {
+            margin-top: 24px;
+            padding: 28px;
+            border-radius: 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            display: none;
+        }
+
+        .result-box.visible {
+            display: block;
+        }
+
+        .result-score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-text {
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .result-grade {
+            margin-top: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        /* Layer diagram */
+        .layer-hint {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 24px 20px 20px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+        }
+
+        .onion-svg {
+            width: 100%;
+            max-width: 380px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .layer-hint-text {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin: 10px 0 0;
+        }
+
+        .layer-hint-sub {
+            color: #475569;
+            font-size: 0.7rem;
+            margin: 4px 0 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Architektur-Quiz</h1>
+        <p>Onion Architecture mit Boundary, Domain und Persistence</p>
+    </header>
+
+    <div class="layer-hint">
+        <svg class="onion-svg" viewBox="0 0 460 430" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <clipPath id="topHalf">
+                    <rect x="0" y="0" width="460" height="217"/>
+                </clipPath>
+                <clipPath id="bottomHalf">
+                    <rect x="0" y="223" width="460" height="207"/>
+                </clipPath>
+                <mask id="ringMask">
+                    <rect width="460" height="430" fill="white"/>
+                    <circle cx="230" cy="220" r="88" fill="black"/>
+                </mask>
+            </defs>
+
+            <!-- Boundary ring (top half) -->
+            <g clip-path="url(#topHalf)" mask="url(#ringMask)">
+                <circle cx="230" cy="220" r="175" fill="#38bdf8" fill-opacity="0.06"
+                        stroke="#38bdf8" stroke-opacity="0.25" stroke-width="1.5"/>
+            </g>
+
+            <!-- Persistence ring (bottom half) -->
+            <g clip-path="url(#bottomHalf)" mask="url(#ringMask)">
+                <circle cx="230" cy="220" r="175" fill="#2dd4bf" fill-opacity="0.06"
+                        stroke="#2dd4bf" stroke-opacity="0.25" stroke-width="1.5"/>
+            </g>
+
+            <!-- Domain circle -->
+            <circle cx="230" cy="220" r="85" fill="#818cf8" fill-opacity="0.08"
+                    stroke="#818cf8" stroke-opacity="0.35" stroke-width="1.5"/>
+
+            <!-- Connection lines -->
+            <!-- Boundary: Models - Mappers -->
+            <line x1="180" y1="89" x2="280" y2="89"
+                  stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Boundary Mappers - Domain Models -->
+            <line x1="294" y1="111" x2="241" y2="216"
+                  stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Persistence: Mappers - Models -->
+            <line x1="180" y1="352" x2="280" y2="352"
+                  stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Persistence Mappers - Domain Models -->
+            <line x1="169" y1="331" x2="216" y2="259"
+                  stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+
+            <!-- Boundary: Models -->
+            <circle cx="155" cy="89" r="25" fill="#38bdf8" fill-opacity="0.12"
+                    stroke="#38bdf8" stroke-opacity="0.5" stroke-width="1"/>
+            <text x="155" y="93" text-anchor="middle"
+                  fill="#38bdf8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Models
+            </text>
+
+            <!-- Boundary: Mappers -->
+            <circle cx="305" cy="89" r="25" fill="#38bdf8" fill-opacity="0.12"
+                    stroke="#38bdf8" stroke-opacity="0.5" stroke-width="1"/>
+            <text x="305" y="93" text-anchor="middle"
+                  fill="#38bdf8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Mappers
+            </text>
+
+            <!-- Domain: Models -->
+            <circle cx="230" cy="238" r="25" fill="#818cf8" fill-opacity="0.15"
+                    stroke="#818cf8" stroke-opacity="0.5" stroke-width="1"/>
+            <text x="230" y="242" text-anchor="middle"
+                  fill="#c4b5fd" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Models
+            </text>
+
+            <!-- Persistence: Mappers -->
+            <circle cx="155" cy="352" r="25" fill="#2dd4bf" fill-opacity="0.12"
+                    stroke="#2dd4bf" stroke-opacity="0.5" stroke-width="1"/>
+            <text x="155" y="356" text-anchor="middle"
+                  fill="#2dd4bf" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Mappers
+            </text>
+
+            <!-- Persistence: Models -->
+            <circle cx="305" cy="352" r="25" fill="#2dd4bf" fill-opacity="0.12"
+                    stroke="#2dd4bf" stroke-opacity="0.5" stroke-width="1"/>
+            <text x="305" y="356" text-anchor="middle"
+                  fill="#2dd4bf" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Models
+            </text>
+
+            <!-- Layer labels -->
+            <text x="230" y="34" text-anchor="middle"
+                  fill="#38bdf8" font-family="system-ui, sans-serif" font-size="12" font-weight="700"
+                  letter-spacing="0.08em">BOUNDARY
+            </text>
+            <text x="230" y="418" text-anchor="middle"
+                  fill="#2dd4bf" font-family="system-ui, sans-serif" font-size="12" font-weight="700"
+                  letter-spacing="0.08em">PERSISTENCE
+            </text>
+            <text x="230" y="205" text-anchor="middle"
+                  fill="#a78bfa" font-family="system-ui, sans-serif" font-size="11" font-weight="700"
+                  letter-spacing="0.05em">DOMAIN
+            </text>
+        </svg>
+        <p class="layer-hint-text">Abhängigkeiten zeigen von außen nach innen</p>
+        <p class="layer-hint-sub">Jede Schicht besitzt eigene Models und Mapper zur Nachbarschicht</p>
+    </div>
+
+    <div class="progress-label"><span id="progressText">0</span> von <span id="totalQuestions"></span> beantwortet</div>
+    <div class="progress-wrapper">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="quiz"></div>
+
+    <div class="result-section">
+        <button class="result-btn" onclick="showFinalScore()">Auswertung anzeigen</button>
+        <div class="result-box" id="finalResult"></div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            text: "In unserer Onion Architecture besteht die Anwendung aus drei Schichten: Boundary, Domain und Persistence. Welche dieser Schichten bildet den innersten Ring und enthält die zentrale Geschäftslogik, die von keiner anderen Schicht abhängig sein darf?",
+            options: [
+                "Die Boundary-Schicht, da sie die Schnittstelle nach außen bildet",
+                "Die Domain-Schicht, da sie die Geschäftslogik und fachlichen Regeln enthält",
+                "Die Persistence-Schicht, da ohne Datenbank nichts funktioniert",
+                "Alle drei Schichten sind gleichberechtigt und es gibt keinen inneren Ring"
+            ],
+            correct: 1,
+            explanation: "Die Domain-Schicht liegt im Kern der Onion Architecture. Sie enthält die fachliche Logik und darf keine Abhängigkeiten zu den äußeren Schichten (Boundary, Persistence) haben."
+        },
+        {
+            text: "Die sogenannte Dependency Rule ist das wichtigste Prinzip der Onion Architecture. Sie besagt, dass Quellcode-Abhängigkeiten nur in eine bestimmte Richtung zeigen dürfen. In welche Richtung dürfen Abhängigkeiten in unserer Architektur mit Boundary, Domain und Persistence zeigen?",
+            options: [
+                "Von innen nach außen: Domain darf Boundary und Persistence kennen",
+                "Von außen nach innen: Boundary und Persistence dürfen Domain kennen, aber nicht umgekehrt",
+                "In beliebiger Richtung, solange keine zyklischen Abhängigkeiten entstehen",
+                "Nur zwischen Boundary und Persistence, Domain bleibt isoliert und wird nicht referenziert"
+            ],
+            correct: 1,
+            explanation: "Die Dependency Rule besagt, dass Abhängigkeiten stets nach innen zeigen. Boundary und Persistence dürfen die Domain-Schicht kennen und verwenden, aber die Domain-Schicht darf weder Boundary noch Persistence importieren."
+        },
+        {
+            text: "Jede Schicht in unserer Architektur besitzt eigene Modell-Klassen. In der Boundary-Schicht verwenden wir DTOs für die REST-API, in der Domain-Schicht fachliche Domain-Models und in der Persistence-Schicht Datenbank-Entities. Warum verwenden wir nicht einfach ein einziges Modell über alle Schichten hinweg?",
+            options: [
+                "Weil Java technisch keine gemeinsamen Klassen über Packages hinweg erlaubt",
+                "Weil jede Schicht unterschiedliche Anforderungen an die Datenstruktur hat und die Schichtentrennung so gewahrt bleibt",
+                "Weil mehr Klassen automatisch zu besserer Performance führen",
+                "Weil das Quarkus-Framework getrennte Modelle vorschreibt"
+            ],
+            correct: 1,
+            explanation: "Jede Schicht hat unterschiedliche Anforderungen: DTOs transportieren nur die für die API nötigen Felder, Domain-Models bilden die fachliche Logik ab, und Entities spiegeln die Datenbankstruktur wider. Getrennte Modelle verhindern zudem, dass Änderungen in einer Schicht die anderen ungewollt beeinflussen."
+        },
+        {
+            text: "Zwischen benachbarten Schichten setzen wir Mapper ein, die Objekte von einem Modell in ein anderes überführen. Zwischen welchen Schichten befinden sich in unserer Architektur diese Mapper?",
+            options: [
+                "Nur zwischen Boundary und Persistence, die Domain hat keinen eigenen Mapper",
+                "Zwischen Boundary und Domain sowie zwischen Domain und Persistence",
+                "Nur zwischen Boundary und Domain, da die Persistence-Schicht direkt Domain-Models speichert",
+                "Zwischen allen drei Schichten untereinander, also auch direkt zwischen Boundary und Persistence"
+            ],
+            correct: 1,
+            explanation: "Es gibt Mapper an den beiden Schichtgrenzen: Boundary ↔ Domain (DTO ↔ Domain-Model) und Domain ↔ Persistence (Domain-Model ↔ Entity). Ein direkter Mapper zwischen Boundary und Persistence existiert nicht, da die Schichten nicht direkt miteinander kommunizieren."
+        },
+        {
+            text: "Ein Mapper zwischen der Boundary- und der Domain-Schicht wandelt DTOs in Domain-Models um und umgekehrt. In welcher der beiden Schichten sollte dieser Mapper implementiert sein, und warum?",
+            options: [
+                "In der Domain-Schicht, damit die Geschäftslogik die Kontrolle über die Transformation hat",
+                "In der Boundary-Schicht, da sie die äußere Schicht ist und die Domain-Schicht kennen darf, aber nicht umgekehrt",
+                "In einer eigenen, vierten Mapper-Schicht, die zwischen Boundary und Domain liegt",
+                "Es spielt keine Rolle, in welcher Schicht der Mapper liegt"
+            ],
+            correct: 1,
+            explanation: "Gemäß der Dependency Rule darf die äußere Schicht die innere kennen, aber nicht umgekehrt. Der Boundary-Domain-Mapper kennt sowohl DTOs (eigene Schicht) als auch Domain-Models (innere Schicht) und gehört daher in die Boundary-Schicht."
+        },
+        {
+            text: "Analog dazu existiert ein Mapper zwischen der Domain- und der Persistence-Schicht, der Domain-Models in Datenbank-Entities überführt. In welcher Schicht sollte dieser Mapper liegen?",
+            options: [
+                "In der Domain-Schicht, da sie die zentrale Schicht ist",
+                "In einer separaten Mapper-Bibliothek außerhalb der Schichten",
+                "In der Persistence-Schicht, da sie die äußere Schicht ist und die Domain-Schicht kennen darf",
+                "In der Boundary-Schicht, da dort alle Transformationen gebündelt werden"
+            ],
+            correct: 2,
+            explanation: "Die Persistence-Schicht ist bezüglich der Domain-Schicht die äußere Schicht. Sie darf Domain-Models kennen und importieren. Daher gehört der Mapper, der Domain-Models in Entities umwandelt, in die Persistence-Schicht."
+        },
+        {
+            text: "Ein Entwickler schlägt vor, in der Domain-Schicht einen JPA-Import (z.\u00A0B. jakarta.persistence.Entity) zu verwenden, um die Domain-Models direkt als Datenbank-Entities zu annotieren. Was spricht aus Sicht der Onion Architecture dagegen?",
+            options: [
+                "JPA ist veraltet und sollte generell nicht mehr verwendet werden",
+                "Die Domain-Schicht würde dadurch eine Abhängigkeit zur Persistence-Technologie erhalten und die Dependency Rule verletzen",
+                "JPA-Annotationen funktionieren technisch nur in der Persistence-Schicht",
+                "Es spricht nichts dagegen, da JPA-Annotationen keine echte Abhängigkeit darstellen"
+            ],
+            correct: 1,
+            explanation: "Die Domain-Schicht darf keine Abhängigkeiten zu Technologien der äußeren Schichten besitzen. Ein JPA-Import in der Domain würde die Geschäftslogik an eine konkrete Persistenz-Technologie koppeln und die Dependency Rule verletzen."
+        },
+        {
+            text: "Ein großer Vorteil der Onion Architecture ist die Austauschbarkeit äußerer Schichten. Angenommen, die Datenbank soll von PostgreSQL auf MongoDB umgestellt werden. Welche Schichten unserer Architektur sind von dieser Änderung betroffen?",
+            options: [
+                "Alle drei Schichten müssen angepasst werden, da die Datenbank das Fundament bildet",
+                "Nur die Domain-Schicht, da sie die zentrale Datenhaltungslogik enthält",
+                "Nur die Persistence-Schicht, da Boundary und Domain keine Abhängigkeiten zur Datenbank-Technologie haben",
+                "Boundary und Persistence, da beide direkt mit Daten arbeiten"
+            ],
+            correct: 2,
+            explanation: "Durch die strikte Schichtentrennung ist nur die Persistence-Schicht von einem Datenbankwechsel betroffen. Die Domain-Schicht kennt keine Datenbank-Technologie, und die Boundary-Schicht kommuniziert ausschließlich mit der Domain."
+        },
+        {
+            text: "Die Boundary-Schicht stellt REST-Endpunkte bereit und nimmt Anfragen als DTOs entgegen. Warum sollte sie die erhaltenen DTOs nicht direkt an die Persistence-Schicht weiterreichen, sondern den Umweg über die Domain-Schicht nehmen?",
+            options: [
+                "Weil DTOs technisch nicht in Datenbank-Entities konvertiert werden können",
+                "Weil die Geschäftslogik in der Domain-Schicht liegt und bei jedem Vorgang durchlaufen werden muss, um Validierungen und fachliche Regeln sicherzustellen",
+                "Weil der Umweg über die Domain-Schicht die Performance optimiert",
+                "Weil die Boundary-Schicht gar keinen Zugriff auf die Persistence-Schicht hat, da beide äußere Schichten sind"
+            ],
+            correct: 1,
+            explanation: "Die Domain-Schicht enthält Validierungen, Geschäftsregeln und fachliche Logik. Wenn die Boundary-Schicht direkt mit der Persistence-Schicht kommuniziert, wird die Geschäftslogik umgangen. Zudem sind Boundary und Persistence beide äußere Schichten, die einander nicht kennen sollten."
+        },
+        {
+            text: "Jede Schicht besitzt eigene Modell-Klassen. Welchen konkreten Vorteil bieten diese getrennten Modelle gegenüber einem einzigen, schichtübergreifend verwendeten Modell?",
+            options: [
+                "Die Anwendung wird schneller, weil weniger Daten zwischen den Schichten übertragen werden",
+                "Jede Schicht kann ihre Modelle mit schichtenspezifischen Details versehen, z.\u00A0B. JPA-Annotationen in der Persistence-Schicht oder JSON-Annotationen in der Boundary-Schicht, ohne die anderen Schichten zu beeinflussen",
+                "Getrennte Modelle erzwingen mehr Testklassen, was die Testabdeckung automatisch erhöht",
+                "Es gibt keinen echten Vorteil, getrennte Modelle erzeugen nur zusätzlichen Aufwand"
+            ],
+            correct: 1,
+            explanation: "Getrennte Modelle erlauben es jeder Schicht, ihre eigenen technischen Details (Annotationen, Datentypen, Feldnamen) frei zu gestalten. So kann die Persistence-Schicht z.\u00A0B. JPA-Annotationen verwenden und die Boundary-Schicht JSON-spezifische Annotationen, ohne dass diese Details in andere Schichten durchsickern."
+        },
+        {
+            text: "Ein neuer Kollege fragt, warum bestimmte Datenbank-Entity-Felder (z.\u00A0B. ein lastModified-Timestamp oder ein Fremdschlüssel auf eine andere Tabelle) nicht im REST-DTO auftauchen sollten. Welche Begründung ist im Sinne der Onion Architecture korrekt?",
+            options: [
+                "Technische Datenbankdetails gehören zur Persistence-Schicht und haben in der Boundary-Schicht nichts zu suchen, da jede Schicht nur die für sie relevanten Informationen modelliert",
+                "REST-DTOs dürfen aus Sicherheitsgründen generell keine Datenbankfelder enthalten",
+                "Entity-Felder sind in DTOs nicht serialisierbar und würden zu Laufzeitfehlern führen",
+                "Es gibt keinen Grund dagegen, alle Felder sollten in allen Modellen gleich sein"
+            ],
+            correct: 0,
+            explanation: "Jede Schicht modelliert nur das, was sie benötigt. Technische Datenbankfelder wie lastModified-Timestamps oder Fremdschlüssel sind Implementierungsdetails der Persistence-Schicht und sollten nicht in die Boundary-Schicht durchsickern."
+        },
+        {
+            text: "In unserer Architektur definiert die Domain-Schicht ein DAO-Interface (z.\u00A0B. CustomersDao), das die Persistence-Schicht dann implementiert. Welches Entwurfsprinzip wird hier angewandt und warum ist es notwendig?",
+            options: [
+                "Das Singleton-Pattern, damit nur eine DAO-Instanz existiert",
+                "Dependency Inversion: Die Domain definiert die Abstraktion, die Persistence liefert die Implementierung \u2013 so bleibt die Domain frei von Persistence-Abhängigkeiten",
+                "Das Observer-Pattern, damit die Domain über Datenbankänderungen benachrichtigt wird",
+                "Das Factory-Pattern, um verschiedene DAO-Implementierungen zur Laufzeit zu wählen"
+            ],
+            correct: 1,
+            explanation: "Durch Dependency Inversion definiert die innere Schicht (Domain) ein Interface, das die äußere Schicht (Persistence) implementiert. So kann die Domain den Datenzugriff nutzen, ohne die konkrete Implementierung oder Technologie zu kennen."
+        }
+    ];
+
+    let score = 0;
+    let answeredCount = 0;
+    const answered = new Array(questions.length).fill(false);
+
+    function loadQuiz() {
+        document.getElementById("totalQuestions").textContent = questions.length;
+        const quizDiv = document.getElementById("quiz");
+
+        questions.forEach((q, index) => {
+            const card = document.createElement("div");
+            card.className = "question-card";
+            card.id = "q" + index;
+
+            const number = document.createElement("span");
+            number.className = "question-number";
+            number.textContent = "Frage " + (index + 1) + " von " + questions.length;
+            card.appendChild(number);
+
+            const text = document.createElement("div");
+            text.className = "question-text";
+            text.textContent = q.text;
+            card.appendChild(text);
+
+            const optionsDiv = document.createElement("div");
+            optionsDiv.className = "options";
+
+            const labels = ["A", "B", "C", "D"];
+            q.options.forEach((option, i) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.innerHTML = '<span class="option-label">' + labels[i] + '</span><span>' + option + '</span>';
+                btn.onclick = function () {
+                    checkAnswer(index, i, btn, card);
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            card.appendChild(optionsDiv);
+
+            const feedback = document.createElement("div");
+            feedback.className = "feedback";
+            card.appendChild(feedback);
+
+            quizDiv.appendChild(card);
+        });
+    }
+
+    function checkAnswer(qIndex, selectedIndex, button, card) {
+        if (answered[qIndex]) return;
+        answered[qIndex] = true;
+        answeredCount++;
+
+        const buttons = card.querySelectorAll(".option-btn");
+        const feedback = card.querySelector(".feedback");
+        const isCorrect = selectedIndex === questions[qIndex].correct;
+
+        buttons.forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === questions[qIndex].correct) {
+                btn.classList.add("correct");
+            } else if (i === selectedIndex) {
+                btn.classList.add("incorrect");
+            } else {
+                btn.classList.add("dimmed");
+            }
+        });
+
+        if (isCorrect) {
+            score++;
+            card.classList.add("answered-correct");
+            feedback.className = "feedback correct";
+            feedback.textContent = "\u2714 Richtig! " + questions[qIndex].explanation;
+        } else {
+            card.classList.add("answered-wrong");
+            feedback.className = "feedback incorrect";
+            feedback.textContent = "\u2718 Leider falsch. " + questions[qIndex].explanation;
+        }
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const pct = Math.round((answeredCount / questions.length) * 100);
+        document.getElementById("progressBar").style.width = pct + "%";
+        document.getElementById("progressText").textContent = answeredCount;
+    }
+
+    function showFinalScore() {
+        if (answeredCount === 0) return;
+        const pct = Math.round((score / questions.length) * 100);
+        let grade;
+
+        if (pct >= 90) grade = "Hervorragend! Du hast die Onion Architecture sehr gut verstanden.";
+        else if (pct >= 75) grade = "Gut gemacht! Du hast ein solides Verst\u00E4ndnis der Architekturprinzipien.";
+        else if (pct >= 50) grade = "Grundlagen sind vorhanden. Schau dir die Erkl\u00E4rungen der falschen Antworten nochmal an.";
+        else grade = "Hier besteht noch Lernbedarf. Eine Wiederholung der Architekturgrundlagen wird empfohlen.";
+
+        const box = document.getElementById("finalResult");
+        box.innerHTML =
+            '<div class="result-score">' + score + ' / ' + questions.length + '</div>' +
+            '<div class="result-text">' + pct + '% richtig beantwortet</div>' +
+            '<div class="result-grade">' + grade + '</div>';
+        box.classList.add("visible");
+        box.scrollIntoView({behavior: "smooth", block: "center"});
+    }
+
+    loadQuiz();
+</script>
+
+</body>
+</html>
