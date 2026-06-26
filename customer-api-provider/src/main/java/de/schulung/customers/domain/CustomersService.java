@@ -2,6 +2,7 @@ package de.schulung.customers.domain;
 
 import de.schulung.customers.domain.events.CustomerCreatedEvent;
 import de.schulung.customers.domain.events.CustomerDeletedEvent;
+import de.schulung.customers.domain.events.CustomerReplacedEvent;
 import de.schulung.customers.shared.interceptors.FireEvent;
 import de.schulung.customers.shared.interceptors.LogPerformance;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,6 +41,12 @@ public class CustomersService {
   @FireEvent(CustomerCreatedEvent.class)
   public void createCustomer(@NotNull @Valid Customer customer) {
     // TODO Validation Groups für UUID Validierung
+    sink.save(customer);
+  }
+
+  @FireEvent(CustomerReplacedEvent.class)
+  public void updateCustomer(@NotNull @Valid Customer customer) {
+    // TODO Validation Groups: UUID muss hier gesetzt sein
     sink.save(customer);
   }
 

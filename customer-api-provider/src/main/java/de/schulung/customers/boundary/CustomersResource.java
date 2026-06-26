@@ -10,6 +10,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
@@ -70,6 +71,21 @@ public class CustomersResource {
       .created(location)
       .entity(responseDto)
       .build();
+  }
+
+  @PUT
+  @Path("/{uuid}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void replaceCustomer(
+    @PathParam("uuid") UUID uuid,
+    @Valid CustomerDto customerDto
+  ) {
+    if (!customersService.customerExists(uuid)) {
+      throw new NotFoundException();
+    }
+    final var customer = mapper.map(customerDto);
+    customer.setUuid(uuid);
+    customersService.updateCustomer(customer);
   }
 
   @DELETE
