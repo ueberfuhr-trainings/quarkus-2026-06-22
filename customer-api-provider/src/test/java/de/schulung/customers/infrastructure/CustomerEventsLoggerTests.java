@@ -4,11 +4,10 @@ import de.schulung.customers.testing.CaptureOutput;
 import de.schulung.customers.testing.CaptureOutput.CapturedOutput;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static de.schulung.customers.testing.CustomersApiHelper.aCustomer;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 @TestProfile(EnableCustomerEventsLoggingProfile.class)
@@ -17,29 +16,18 @@ class CustomersEventsLoggerTests {
 
   @Test
   void whenCreateCustomer_thenLogEvent(CapturedOutput output) {
-    final var newCustomerUuid = given()
-      .contentType(ContentType.JSON)
-      .body("""
-        {
-          "name": "Tom Mayer",
-          "birthdate": "2006-06-23",
-          "state": "active"
-        }
-        """)
-      .accept(ContentType.JSON)
-      .when()
-      .post("/customers")
-      .then()
-      .statusCode(201)
-      .extract().path("uuid");
+    final var newCustomer = aCustomer()
+      .create()
+      .andReturn();
 
     // async: use Awaitility
-    assertTrue(
-      output.toString().matches("(?si).*Customer created.*" + newCustomerUuid + ".*"),
-      """
-        Expected log output to contain 'Customer created' with id "%s"
-        """.formatted(newCustomerUuid)
-    );
+    assertThat(output.toString())
+      .as(
+        """
+          Expected log output to contain 'Customer created' with id "%s"
+          """.formatted(newCustomer.id())
+      )
+      .matches("(?si).*Customer created.*" + newCustomer.id() + ".*");
 
   }
 
