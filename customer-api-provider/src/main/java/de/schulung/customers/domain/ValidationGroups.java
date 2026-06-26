@@ -1,11 +1,13 @@
 package de.schulung.customers.domain;
 
+import jakarta.validation.groups.Default;
+
 public interface ValidationGroups {
 
-  interface Create {
+  interface Create extends Default {
   }
 
-  interface Update {
+  interface Update extends Default {
   }
 
 }
