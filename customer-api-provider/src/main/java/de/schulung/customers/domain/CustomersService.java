@@ -2,6 +2,7 @@ package de.schulung.customers.domain;
 
 import de.schulung.customers.domain.events.CustomerCreatedEvent;
 import de.schulung.customers.domain.events.CustomerDeletedEvent;
+import de.schulung.customers.shared.interceptors.LogPerformance;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.validation.Valid;
@@ -36,6 +37,7 @@ public class CustomersService {
   }
 
 
+  @LogPerformance // TODO: @LogPerformance(Level.DEBUG) - Log-Level konfigurieren
   public void createCustomer(@NotNull @Valid Customer customer) {
     // TODO Validation Groups für UUID Validierung
     sink.save(customer);
