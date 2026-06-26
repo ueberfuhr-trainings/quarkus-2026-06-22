@@ -541,7 +541,7 @@
             explanation: "Jede Schicht modelliert nur das, was sie benötigt. Technische Datenbankfelder wie lastModified-Timestamps oder Fremdschlüssel sind Implementierungsdetails der Persistence-Schicht und sollten nicht in die Boundary-Schicht durchsickern."
         },
         {
-            text: "In unserer Architektur definiert die Domain-Schicht ein DAO-Interface (z.\u00A0B. CustomersDao), das die Persistence-Schicht dann implementiert. Welches Entwurfsprinzip wird hier angewandt und warum ist es notwendig?",
+            text: "In unserer Architektur definiert die Domain-Schicht ein DAO-/Sink-Interface (z.\u00A0B. CustomersDao oder CustomersSink), das die Persistence-Schicht dann implementiert. Welches Entwurfsprinzip wird hier angewandt und warum ist es notwendig?",
             options: [
                 "Das Singleton-Pattern, damit nur eine DAO-Instanz existiert",
                 "Dependency Inversion: Die Domain definiert die Abstraktion, die Persistence liefert die Implementierung \u2013 so bleibt die Domain frei von Persistence-Abhängigkeiten",
