@@ -10,10 +10,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Getter
+@Setter
 @Entity(name = "Customer") // JPQL: SELECT c FROM Customer c
 @Table(name = "customers")
 public class CustomerEntity {
@@ -30,39 +34,4 @@ public class CustomerEntity {
   private LocalDate birthdate;
   private CustomerState state;
 
-  public UUID getUuid() {
-    return uuid;
-  }
-
-  public CustomerEntity setUuid(UUID uuid) {
-    this.uuid = uuid;
-    return this;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public CustomerEntity setName(String name) {
-    this.name = name;
-    return this;
-  }
-
-  public LocalDate getBirthdate() {
-    return birthdate;
-  }
-
-  public CustomerEntity setBirthdate(LocalDate birthdate) {
-    this.birthdate = birthdate;
-    return this;
-  }
-
-  public CustomerState getState() {
-    return state;
-  }
-
-  public CustomerEntity setState(CustomerState state) {
-    this.state = state;
-    return this;
-  }
 }

@@ -9,21 +9,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.groups.ConvertGroup;
+import lombok.RequiredArgsConstructor;
 import org.jboss.logging.Logger.Level;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@RequiredArgsConstructor
 @ApplicationScoped
 public class CustomersService {
 
   private final CustomersSink sink;
-
-  public CustomersService(CustomersSink sink) {
-    this.sink = sink;
-  }
-
 
   public Stream<Customer> getCustomers() {
     return sink.findAll();
@@ -46,7 +43,6 @@ public class CustomersService {
     @ConvertGroup(to = ValidationGroups.Create.class)
     Customer customer
   ) {
-    // TODO Validation Groups für UUID Validierung
     sink.save(customer);
   }
 
@@ -57,7 +53,6 @@ public class CustomersService {
     @ConvertGroup(to = ValidationGroups.Update.class)
     Customer customer
   ) {
-    // TODO Validation Groups: UUID muss hier gesetzt sein
     sink.save(customer);
   }
 
