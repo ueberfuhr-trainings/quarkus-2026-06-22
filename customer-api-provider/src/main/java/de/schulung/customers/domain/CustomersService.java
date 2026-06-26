@@ -8,6 +8,7 @@ import de.schulung.customers.shared.interceptors.LogPerformance;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.groups.ConvertGroup;
 import org.jboss.logging.Logger.Level;
 
 import java.util.Optional;
@@ -39,13 +40,23 @@ public class CustomersService {
 
   @LogPerformance(Level.DEBUG)
   @FireEvent(CustomerCreatedEvent.class)
-  public void createCustomer(@NotNull @Valid Customer customer) {
+  public void createCustomer(
+    @NotNull
+    @Valid
+    @ConvertGroup(to = ValidationGroups.Create.class)
+    Customer customer
+  ) {
     // TODO Validation Groups für UUID Validierung
     sink.save(customer);
   }
 
   @FireEvent(CustomerReplacedEvent.class)
-  public void updateCustomer(@NotNull @Valid Customer customer) {
+  public void updateCustomer(
+    @NotNull
+    @Valid
+    @ConvertGroup(to = ValidationGroups.Update.class)
+    Customer customer
+  ) {
     // TODO Validation Groups: UUID muss hier gesetzt sein
     sink.save(customer);
   }

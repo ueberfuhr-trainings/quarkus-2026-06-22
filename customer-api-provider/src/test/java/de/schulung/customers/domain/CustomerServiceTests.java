@@ -4,7 +4,6 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -80,8 +79,6 @@ public class CustomerServiceTests {
   }
 
   // createCustomer() darf keinen Customer mit bereits gesetzter UUID akzeptieren.
-  // Disabled: UUID-Validierung (Validation Groups) noch nicht umgesetzt -> schlaegt fehl.
-  @Disabled("UUID-Validierung via Validation Groups noch nicht umgesetzt (siehe TODO in CustomersService)")
   @Test
   void given_customer_with_id_when_create_customer_then_throw_exception() {
     final var customer = new Customer()
@@ -95,11 +92,10 @@ public class CustomerServiceTests {
   }
 
   // updateCustomer() benoetigt einen Customer mit gesetzter UUID.
-  // Disabled: UUID-Validierung (Validation Groups) noch nicht umgesetzt -> schlaegt fehl.
-  @Disabled("UUID-Validierung via Validation Groups noch nicht umgesetzt (siehe TODO in CustomersService)")
   @Test
   void given_customer_without_id_when_update_customer_then_throw_exception() {
     final var customer = new Customer()
+      .setUuid(null)
       .setName("Tom Mayer")
       .setBirthdate(LocalDate.now().minusYears(20))
       .setState(CustomerState.ACTIVE);
