@@ -1,6 +1,8 @@
 package de.schulung.customers.shared.interceptors;
 
+import jakarta.enterprise.util.Nonbinding;
 import jakarta.interceptor.InterceptorBinding;
+import org.jboss.logging.Logger;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -16,4 +18,7 @@ import java.lang.annotation.Target;
 @Documented
 @InterceptorBinding
 public @interface LogPerformance {
+
+  @Nonbinding Logger.Level value() default Logger.Level.INFO;
+
 }

@@ -6,27 +6,30 @@ import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
 import org.jboss.logging.Logger;
 
-@Interceptor
 @LogPerformance
+@Interceptor
 public class LogPerformanceInterceptor {
 
-  @LoggerName("performance")
+  @LoggerName("log-performance")
   Logger logger;
 
   @AroundInvoke
-  public Object measureAndLogPerformance(InvocationContext invocationContext) throws Exception {
-    final var startTime = System.currentTimeMillis();
+  public Object intercept(InvocationContext ctx) throws Exception {
+    final var logLevel = AnnotationUtils
+      .findAnnotation(ctx.getMethod(), LogPerformance.class)
+      .map(LogPerformance::value)
+      .orElse(Logger.Level.INFO);
+    long start = System.currentTimeMillis();
     try {
-      return invocationContext.proceed();
+      return ctx.proceed();
     } finally {
-      final var endTime = System.currentTimeMillis();
-      logger
-        .infof(
-          "Method %s took %d ms",
-          invocationContext.getMethod().getName(),
-          endTime - startTime
-        );
+      long end = System.currentTimeMillis();
+      logger.logf(
+        logLevel,
+        "Method %s took %dms",
+        ctx.getMethod().getName(),
+        end - start
+      );
     }
   }
-
 }
